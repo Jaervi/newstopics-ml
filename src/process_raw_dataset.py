@@ -24,7 +24,7 @@ else:
 
 #Extracts the organization name following these two formats
 # 60-13211-UA-talousjaarki
-# 60-13211-UA-talousjaarki
+# 1343-pohjanmaa
 # And lists with ; separator
 def extract_organization(org_field: str) -> str:
 
@@ -129,7 +129,7 @@ def process_json_into_csv_row(json_obj):
     #organization = "".join(analytics_obj.get("yle_organization", "").split(";")[0].split("-")[3:]).strip()
     #topic = analytics_obj.get("yle_topic", "").split(";")[0]
 
-    if not headline or not date or not topic or not organization or not fine_topic:
+    if not headline or not date or not topic: #Requiring headline, date, topic but not others
         if save_errors:
           missing_fields = []
           if not headline:

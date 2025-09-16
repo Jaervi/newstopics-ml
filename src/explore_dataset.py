@@ -44,7 +44,7 @@ os.makedirs("metadata", exist_ok=True)
 if save_files == 'y':
     topic_counts_df = topic_counts.reset_index()
     topic_counts_df.columns = ['topic', 'count']
-    topic_counts_df.to_csv("metadata/topic_frequencies.csv", index=False, encoding="utf-8")
+    topic_counts_df.to_csv(f"metadata/topic_frequencies_{filename}.csv", index=False, encoding="utf-8")
 
 print(topic_counts, "\n")
 
@@ -56,7 +56,7 @@ organization_counts = df['organization'].value_counts()
 if save_files == 'y':
     organization_counts_df = organization_counts.reset_index()
     organization_counts_df.columns = ['organization', 'count']
-    organization_counts_df.to_csv("metadata/organization_frequencies.csv", index=False, encoding="utf-8")
+    organization_counts_df.to_csv(f"metadata/organization_frequencies_{filename}.csv", index=False, encoding="utf-8")
     
 print(organization_counts, "\n")
 
@@ -68,7 +68,7 @@ fine_topic_counts = df['fine_topic'].value_counts()
 if save_files == 'y':
     fine_topic_counts_df = fine_topic_counts.reset_index()
     fine_topic_counts_df.columns = ['fine_topic', 'count']
-    fine_topic_counts_df.to_csv("metadata/fine_topic_frequencies.csv", index=False, encoding="utf-8")
+    fine_topic_counts_df.to_csv(f"metadata/fine_topic_frequencies_{filename}.csv", index=False, encoding="utf-8")
     
 print(fine_topic_counts, "\n")
 

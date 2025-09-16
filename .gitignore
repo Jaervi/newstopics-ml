@@ -1,5 +1,6 @@
 # Project specific files
 data/
+dataset/
 logs/
 metadata/
 
