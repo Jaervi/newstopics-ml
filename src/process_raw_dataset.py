@@ -70,7 +70,7 @@ def process_raw_data():
     os.makedirs(PROCESSED_DATA_DEST_PATH, exist_ok=True)
     dest_file = os.path.join(PROCESSED_DATA_DEST_PATH, f"{filename}.csv")
 
-    df = pd.DataFrame(all_rows, columns=["headline", "date", "topic", "organization", "fine_topic"])
+    df = pd.DataFrame(all_rows, columns=["headline", "date", "topic", "organization", "fine_topic", "year", "month"])
     df.to_csv(dest_file, index=False, encoding="utf-8")
 
     print(f"Processed {len(all_rows)} rows into {dest_file}")
@@ -126,6 +126,9 @@ def process_json_into_csv_row(json_obj):
     organization = extract_organization(analytics_obj.get("yle_organization", ""))
     fine_topic = analytics_obj.get("yle_topic", "").split(";")[0]
 
+    year = date[:2]
+    month = date[2:4]
+
     #organization = "".join(analytics_obj.get("yle_organization", "").split(";")[0].split("-")[3:]).strip()
     #topic = analytics_obj.get("yle_topic", "").split(";")[0]
 
@@ -148,7 +151,7 @@ def process_json_into_csv_row(json_obj):
               return None
         return None
 
-    return [headline, date, topic, organization, fine_topic]
+    return [headline, date, topic, organization, fine_topic, year, month]
 
 
 
