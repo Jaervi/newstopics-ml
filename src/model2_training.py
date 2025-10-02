@@ -1,10 +1,11 @@
+from xml.parsers.expat import model
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
 import seaborn as sns  #data visualization library
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix  # evaluation metrics
+from sklearn.metrics import accuracy_score, classification_report
+
 
 from sklearn.datasets import fetch_openml 
 from sklearn.model_selection import train_test_split
@@ -12,6 +13,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neural_network import MLPClassifier
+
 
 import os
 from dotenv import load_dotenv
@@ -49,33 +53,39 @@ tempdf = df.copy()
 tempdf.drop(columns=['year', 'date'], inplace=True) # Do not drop organization or fine_topic for now
 
 TOP_TOPIC_LIMIT = 160
-chosen_topic_label = 'fine_topic'
+chosen_topic_label = 'organization'
 top_topics = tempdf[chosen_topic_label].value_counts().nlargest(TOP_TOPIC_LIMIT).index
 filtered_df = tempdf[tempdf[chosen_topic_label].isin(top_topics)]
 
 final_df = filtered_df.copy()
 
-y = final_df[chosen_topic_label]
+le = LabelEncoder()
+y = le.fit_transform(final_df[chosen_topic_label])
 
 vectorizer = TfidfVectorizer()
 X_title = vectorizer.fit_transform(final_df['headline'])
-
-X_month = StandardScaler().fit_transform(final_df[['month']]) * 0.01
-
-#X = hstack([X_title, X_month])
 X = X_title  # Currently not using month in training
 
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = LogisticRegression(multi_class="multinomial", solver="lbfgs", max_iter=1000, verbose=1, n_jobs=-1)
-#model = LogisticRegression(multi_class="multinomial", solver="saga", max_iter=1000, verbose=1, n_jobs=-1)
-model.fit(X_train, y_train)
 
-joblib.dump(model, f"models/pred/{modelname}.pkl")
+
+mlp = MLPClassifier(
+    hidden_layer_sizes=(100, 50),  # 2 hidden layers: 100 and 50 neurons
+    activation='relu',
+    solver='adam',
+    max_iter=300,
+    verbose=True,
+    random_state=42
+)
+
+print("Training MLP model...")
+mlp.fit(X_train, y_train)
+
+y_pred = mlp.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred, target_names=le.classes_))
+
+joblib.dump(mlp, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")
 print("Model and vectorizer saved.")
-
-y_pred = model.predict(X_test)
-acc = accuracy_score(y_test, y_pred)
-print(acc)

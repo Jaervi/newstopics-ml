@@ -20,7 +20,7 @@ while True:
     title = input("Enter a title: ")
     if title.lower() == "exit":
         break
-    title = title.replace(",", "").replace("ä", "a").replace("ö", "o").replace("-", " ").replace(":", "").strip()
+    title = title.lower().replace(",", "").replace("ä", "a").replace("ö", "o").replace("-", " ").replace(":", "").strip()
 
     #month_str = input("Enter a month (1–12): ")
     #if month_str.lower() == "exit":
@@ -44,12 +44,13 @@ while True:
     prediction = model.predict(X)[0]
     proba = model.predict_proba(X)[0]
 
+    print(f"Formatted title: {title}")
     print(f"Predicted topic: {prediction}")
     print(f"Prediction confidence: {np.max(proba):.3f}")
     print(f"Importance of features (month is last): {model.coef_[model.classes_ == prediction]}")
-    print(f"Top 5 topic probabilities:")
-    top5_indices = np.argsort(proba)[-5:][::-1]
-    for idx in top5_indices:
+    print(f"Top 10 topic probabilities:")
+    top10_indices = np.argsort(proba)[-10:][::-1]
+    for idx in top10_indices:
         print(f" - {model.classes_[idx]}: {proba[idx]:.3f}")
 
-    print(f"   Probabilities: {dict(zip(model.classes_, proba.round(3)))}\n")
+    #print(f"   Probabilities: {dict(zip(model.classes_, proba.round(3)))}\n")
