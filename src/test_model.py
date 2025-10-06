@@ -45,12 +45,24 @@ while True:
     proba = model.predict_proba(X)[0]
 
     print(f"Formatted title: {title}")
-    print(f"Predicted topic: {prediction}")
-    print(f"Prediction confidence: {np.max(proba):.3f}")
-    print(f"Importance of features (month is last): {model.coef_[model.classes_ == prediction]}")
-    print(f"Top 10 topic probabilities:")
-    top10_indices = np.argsort(proba)[-10:][::-1]
-    for idx in top10_indices:
-        print(f" - {model.classes_[idx]}: {proba[idx]:.3f}")
+    
+    if hasattr(model, 'coef_'):
+        print(f"Predicted topic: {prediction}")
+        print(f"Prediction confidence: {np.max(proba):.3f}")
+        print(f"Importance of features (month is last): {model.coef_[model.classes_ == prediction]}")
+        print(f"Top 10 topic probabilities:")
+        top10_indices = np.argsort(proba)[-10:][::-1]
+        for idx in top10_indices:
+            print(f" - {model.classes_[idx]}: {proba[idx]:.3f}")
+    else:
+        le = joblib.load(f"models/vector/{vectorizername}_labelencoder.pkl")
+        predicted_label = le.inverse_transform([prediction])[0]
+        print(f"Predicted topic: {predicted_label}")
+        print(f"Prediction confidence: {np.max(proba):.3f}")
+        print(f"Top 10 topic probabilities:")
+        top10_indices = np.argsort(proba)[-10:][::-1]
+        for idx in top10_indices:
+            label = le.inverse_transform([idx])[0]
+            print(f" - {label}: {proba[idx]:.3f}")
 
     #print(f"   Probabilities: {dict(zip(model.classes_, proba.round(3)))}\n")
