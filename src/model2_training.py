@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import joblib
 import seaborn as sns  #data visualization library
 from sklearn.metrics import accuracy_score, classification_report
+import time
 
 
 from sklearn.datasets import fetch_openml 
@@ -69,23 +70,32 @@ X = X_title  # Currently not using month in training
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
-
 mlp = MLPClassifier(
     hidden_layer_sizes=(100, 50),  # 2 hidden layers: 100 and 50 neurons
     activation='relu',
     solver='adam',
-    max_iter=300,
+    max_iter=1,
     verbose=True,
+    warm_start=True,
     random_state=42
 )
 
-print("Training MLP model...")
-mlp.fit(X_train, y_train)
+accuracies = []
+times = []
 
-y_pred = mlp.predict(X_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print(classification_report(y_test, y_pred, target_names=le.classes_))
+for iteration in range(25):
+    start = time.perf_counter()
+    mlp.fit(X_train, y_train)
+    elapsed = time.perf_counter() - start
+    times.append(elapsed)
+    y_pred = mlp.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    accuracies.append(acc)
+    print(f"Iteration {iteration+1}: Accuracy = {acc:.4f} (Time: {elapsed:.2f} seconds)")
+
+print("Accuracies over iterations:", accuracies)
 
 joblib.dump(mlp, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")
+joblib.dump(le, f"models/vector/{vectorizername}_labelencoder.pkl")
 print("Model and vectorizer saved.")
