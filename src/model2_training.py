@@ -85,11 +85,20 @@ train_accuracies = []
 val_accuracies = []
 times = []
 
-for iteration in range(25):
+for iteration in range(20):
     start = time.perf_counter()
     mlp.fit(X_train, y_train)
     elapsed = time.perf_counter() - start
     times.append(elapsed)
+<<<<<<< HEAD
+=======
+    y_pred_train = mlp.predict(X_train)
+    acc_train = accuracy_score(y_train, y_pred_train)
+    y_pred_val = mlp.predict(X_test)
+    acc = accuracy_score(y_test, y_pred_val)
+    accuracies.append(acc)
+    print(f"Iteration {iteration+1}: Validation accuracy = {acc:.4f}, Training accuracy = {acc_train:.4f} (Time: {elapsed:.2f} seconds)")
+>>>>>>> 728c1345d8653e0384bd0be1630cf0335cf8a7ac
 
     y_pred = mlp.predict(X_train)
     train_acc = accuracy_score(y_train, y_pred)
