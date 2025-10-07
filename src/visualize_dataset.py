@@ -36,6 +36,8 @@ plt.ylabel('Number of articles')
 plt.title('Number of articles by month')
 plt.show()
 
+
+
 # Visualize model using confusion matrix
 '''
 y_pred = model.predict(vectorizer.transform(df['headline']))
