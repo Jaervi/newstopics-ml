@@ -53,7 +53,7 @@ df = pd.read_csv(os.path.join(DATA_PATH, f"{filename}.csv"), dtype={'month': str
 tempdf = df.copy()
 tempdf.drop(columns=['year', 'date'], inplace=True) # Do not drop organization or fine_topic for now
 
-TOP_TOPIC_LIMIT = 160
+TOP_TOPIC_LIMIT = 80
 chosen_topic_label = 'organization'
 top_topics = tempdf[chosen_topic_label].value_counts().nlargest(TOP_TOPIC_LIMIT).index
 filtered_df = tempdf[tempdf[chosen_topic_label].isin(top_topics)]
@@ -72,6 +72,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 mlp = MLPClassifier(
     hidden_layer_sizes=(100, 50),  # 2 hidden layers: 100 and 50 neurons
+    #hidden_layer_sizes=(512, 256, 128),
     activation='relu',
     solver='adam',
     max_iter=1,
@@ -80,7 +81,8 @@ mlp = MLPClassifier(
     random_state=42
 )
 
-accuracies = []
+train_accuracies = []
+val_accuracies = []
 times = []
 
 for iteration in range(25):
@@ -88,12 +90,20 @@ for iteration in range(25):
     mlp.fit(X_train, y_train)
     elapsed = time.perf_counter() - start
     times.append(elapsed)
-    y_pred = mlp.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    accuracies.append(acc)
-    print(f"Iteration {iteration+1}: Accuracy = {acc:.4f} (Time: {elapsed:.2f} seconds)")
 
-print("Accuracies over iterations:", accuracies)
+    y_pred = mlp.predict(X_train)
+    train_acc = accuracy_score(y_train, y_pred)
+
+    y_pred_val = mlp.predict(X_test)
+    val_acc = accuracy_score(y_test, y_pred_val)
+
+    train_accuracies.append(train_acc)
+    val_accuracies.append(val_acc)
+
+    print(f"Iteration {iteration+1}: Accuracies = train: {train_acc:.4f}  val: {val_acc:.4f} (Time: {elapsed:.2f} seconds)")
+
+print("Train accuracies over iterations:", train_accuracies)
+print("Validation accuracies over iterations:", val_accuracies)
 
 joblib.dump(mlp, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")

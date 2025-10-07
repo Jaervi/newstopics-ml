@@ -48,8 +48,8 @@ df = pd.read_csv(os.path.join(DATA_PATH, f"{filename}.csv"), dtype={'month': str
 tempdf = df.copy()
 tempdf.drop(columns=['year', 'date'], inplace=True) # Do not drop organization or fine_topic for now
 
-TOP_TOPIC_LIMIT = 160
-chosen_topic_label = 'fine_topic'
+TOP_TOPIC_LIMIT = 80
+chosen_topic_label = 'organization'
 top_topics = tempdf[chosen_topic_label].value_counts().nlargest(TOP_TOPIC_LIMIT).index
 filtered_df = tempdf[tempdf[chosen_topic_label].isin(top_topics)]
 
@@ -66,16 +66,20 @@ X_month = StandardScaler().fit_transform(final_df[['month']]) * 0.01
 X = X_title  # Currently not using month in training
 
 #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
 
-model = LogisticRegression(multi_class="multinomial", solver="lbfgs", max_iter=1000, verbose=1, n_jobs=-1)
-#model = LogisticRegression(multi_class="multinomial", solver="saga", max_iter=1000, verbose=1, n_jobs=-1)
+#model = LogisticRegression(multi_class="multinomial", solver="lbfgs", max_iter=1000, verbose=1, n_jobs=-1)
+model = LogisticRegression(solver="saga", max_iter=1000, verbose=1, n_jobs=-1)
 model.fit(X_train, y_train)
 
 joblib.dump(model, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")
 print("Model and vectorizer saved.")
 
-y_pred = model.predict(X_test)
-acc = accuracy_score(y_test, y_pred)
-print(acc)
+y_pred = model.predict(X_train)
+train_acc = accuracy_score(y_train, y_pred)
+print("Train accuracy:", train_acc)
+
+y_pred_val = model.predict(X_test)
+val_acc = accuracy_score(y_test, y_pred_val)
+print("Validation accuracy:", val_acc)
