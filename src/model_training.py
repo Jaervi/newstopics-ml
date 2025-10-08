@@ -1,15 +1,11 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
-import seaborn as sns  #data visualization library
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix  # evaluation metrics
+from sklearn.metrics import accuracy_score  # evaluation metrics
 
-from sklearn.datasets import fetch_openml 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack
 
@@ -65,21 +61,53 @@ X_month = StandardScaler().fit_transform(final_df[['month']]) * 0.01
 #X = hstack([X_title, X_month])
 X = X_title  # Currently not using month in training
 
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
 
-#model = LogisticRegression(multi_class="multinomial", solver="lbfgs", max_iter=1000, verbose=1, n_jobs=-1)
-model = LogisticRegression(solver="saga", max_iter=1000, verbose=1, n_jobs=-1)
-model.fit(X_train, y_train)
+X_test, X_val, y_test, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.5, random_state=42
+)
+
+train_accuracies = []
+val_accuracies = []
+
+iterations = 20
+startIteration = 2
+
+for i in range(startIteration - 1, iterations + (startIteration - 1)):
+    print(f"Iteration {i+1}/{iterations + (startIteration - 1)}")
+    model = LogisticRegression(
+        solver="saga",
+        max_iter=i,
+        n_jobs=-1
+    )
+    model.fit(X_train, y_train)
+
+    y_pred_train = model.predict(X_train)
+    y_pred_val = model.predict(X_val)
+    train_acc = accuracy_score(y_train, y_pred_train)
+    val_acc = accuracy_score(y_val, y_pred_val)
+    
+    train_accuracies.append(train_acc)
+    val_accuracies.append(val_acc)
+
+print("Train accuracy:", train_accuracies[-1])
+
+print("Validation accuracy:", val_accuracies[-1])
+
+print("Test accuracy:", accuracy_score(y_test, model.predict(X_test)))
 
 joblib.dump(model, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")
 print("Model and vectorizer saved.")
 
-y_pred = model.predict(X_train)
-train_acc = accuracy_score(y_train, y_pred)
-print("Train accuracy:", train_acc)
-
-y_pred_val = model.predict(X_test)
-val_acc = accuracy_score(y_test, y_pred_val)
-print("Validation accuracy:", val_acc)
+r = range(startIteration, len(val_accuracies) + startIteration)
+plt.plot(r, val_accuracies, label="validation accuracy")
+plt.plot(r, train_accuracies, label="train accuracy")
+plt.xticks(r)
+plt.xlabel("Iteration")
+plt.ylabel("Validation accuracy")
+plt.title(f"Logistic Regression with 80 organization topics, 15% test size, saga solver, {iterations} iterations")
+plt.legend()
+plt.show()

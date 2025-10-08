@@ -1,17 +1,10 @@
-from xml.parsers.expat import model
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
-import seaborn as sns  #data visualization library
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 import time
 
-
-from sklearn.datasets import fetch_openml 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack
 from sklearn.preprocessing import LabelEncoder
@@ -67,12 +60,16 @@ vectorizer = TfidfVectorizer()
 X_title = vectorizer.fit_transform(final_df['headline'])
 X = X_title  # Currently not using month in training
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
 
+X_test, X_val, y_test, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.5, random_state=42
+)
 
 mlp = MLPClassifier(
-    hidden_layer_sizes=(100, 50),  # 2 hidden layers: 100 and 50 neurons
-    #hidden_layer_sizes=(512, 256, 128),
+    hidden_layer_sizes=(100), # one hidden layer with 100 neurons
     activation='relu',
     solver='adam',
     max_iter=1,
@@ -85,7 +82,7 @@ train_accuracies = []
 val_accuracies = []
 times = []
 
-for iteration in range(20):
+for iteration in range(5):
     start = time.perf_counter()
     mlp.fit(X_train, y_train)
     elapsed = time.perf_counter() - start
@@ -104,6 +101,17 @@ for iteration in range(20):
 
 print("Train accuracies over iterations:", train_accuracies)
 print("Validation accuracies over iterations:", val_accuracies)
+print("Test accuracy:", accuracy_score(y_test, mlp.predict(X_test)))
+
+r = range(1, len(val_accuracies) + 1)
+plt.plot(r, val_accuracies, label="validation accuracy")
+plt.plot(r, train_accuracies, label="train accuracy")
+plt.xticks(r)
+plt.xlabel("Iteration")
+plt.ylabel("Validation accuracy")
+plt.title("MLP with one hidden layer of 100 neurons")
+plt.legend()
+plt.show()
 
 joblib.dump(mlp, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")
