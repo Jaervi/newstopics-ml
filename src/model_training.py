@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score  # evaluation metrics
+from sklearn.metrics import accuracy_score, log_loss  # evaluation metrics
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -93,10 +93,13 @@ for i in range(startIteration - 1, iterations + (startIteration - 1)):
     val_accuracies.append(val_acc)
 
 print("Train accuracy:", train_accuracies[-1])
+print("Train error:", log_loss(y_train, model.predict_proba(X_train)))
 
 print("Validation accuracy:", val_accuracies[-1])
+print("Validation error:", log_loss(y_val, model.predict_proba(X_val)))
 
 print("Test accuracy:", accuracy_score(y_test, model.predict(X_test)))
+print("Test error:", log_loss(y_test, model.predict_proba(X_test)))
 
 joblib.dump(model, f"models/pred/{modelname}.pkl")
 joblib.dump(vectorizer, f"models/vector/{vectorizername}.pkl")

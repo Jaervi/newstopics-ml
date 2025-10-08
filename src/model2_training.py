@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, log_loss  # evaluation metrics
 import time
 
 from sklearn.model_selection import train_test_split
@@ -79,7 +79,11 @@ mlp = MLPClassifier(
 )
 
 train_accuracies = []
+train_errors = []
 val_accuracies = []
+val_errors = []
+test_accuracies = []
+test_errors = []
 times = []
 
 for iteration in range(5):
@@ -90,18 +94,31 @@ for iteration in range(5):
 
     y_pred = mlp.predict(X_train)
     train_acc = accuracy_score(y_train, y_pred)
+    train_err = log_loss(y_train, mlp.predict_proba(X_train))
 
-    y_pred_val = mlp.predict(X_test)
-    val_acc = accuracy_score(y_test, y_pred_val)
+    y_pred_val = mlp.predict(X_val)
+    val_acc = accuracy_score(y_val, y_pred_val)
+    val_err = log_loss(y_val, mlp.predict_proba(X_val))
+
+    y_pred_test = mlp.predict(X_test)
+    test_acc = accuracy_score(y_test, y_pred_test)
+    test_err = log_loss(y_test, mlp.predict_proba(X_test))
 
     train_accuracies.append(train_acc)
+    train_errors.append(train_err)
     val_accuracies.append(val_acc)
+    val_errors.append(val_err)
+    test_accuracies.append(test_acc)
+    test_errors.append(test_err)
 
-    print(f"Iteration {iteration+1}: Accuracies = train: {train_acc:.4f}  val: {val_acc:.4f} (Time: {elapsed:.2f} seconds)")
+    print(f"Iteration {iteration+1}:\nAccuracies = train: {train_acc:.4f}  val: {val_acc:.4f}  test: {test_acc:.4f}\nErrors = train: {train_err:.4f}  val: {val_err:.4f}  test: {test_err:.4f}\n(Time: {elapsed:.2f} seconds)")
 
 print("Train accuracies over iterations:", train_accuracies)
+print("Train errors over iterations:", train_errors)
 print("Validation accuracies over iterations:", val_accuracies)
-print("Test accuracy:", accuracy_score(y_test, mlp.predict(X_test)))
+print("Validation errors over iterations:", val_errors)
+print("Test accuracies over iterations:", test_accuracies)
+print("Test errors over iterations:", test_errors)
 
 r = range(1, len(val_accuracies) + 1)
 plt.plot(r, val_accuracies, label="validation accuracy")
